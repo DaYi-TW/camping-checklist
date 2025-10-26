@@ -328,6 +328,97 @@
                 min-width: 120px;
             }
         }
+
+        /* PDF 匯出模式樣式 */
+        .pdf-mode body {
+            background: white !important;
+            padding: 20px !important;
+        }
+
+        .pdf-mode body::before {
+            display: none !important;
+        }
+
+        .pdf-mode .controls {
+            display: none !important;
+        }
+
+        .pdf-mode .header h1 {
+            color: #333 !important;
+            text-shadow: none !important;
+            font-size: 2.5em !important;
+        }
+
+        .pdf-mode .header p {
+            color: #666 !important;
+        }
+
+        .pdf-mode .stats {
+            display: none !important;
+        }
+
+        .pdf-mode .progress-container {
+            display: none !important;
+        }
+
+        .pdf-mode .category {
+            background: white !important;
+            border: 2px solid #e0e0e0 !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+            page-break-inside: avoid;
+        }
+
+        .pdf-mode .category:hover {
+            transform: none !important;
+        }
+
+        .pdf-mode .category-title {
+            color: #333 !important;
+            text-shadow: none !important;
+            border-bottom: 2px solid #ddd !important;
+        }
+
+        .pdf-mode .category-progress {
+            color: #4CAF50 !important;
+        }
+
+        .pdf-mode .checklist-item {
+            background: white !important;
+            border: 1px solid #e0e0e0 !important;
+        }
+
+        .pdf-mode .checklist-item:hover {
+            transform: none !important;
+            background: white !important;
+        }
+
+        .pdf-mode .checklist-item.checked {
+            background: #f1f8f4 !important;
+            border-color: #c8e6c9 !important;
+        }
+
+        .pdf-mode .checklist-item label {
+            color: #333 !important;
+        }
+
+        .pdf-mode .checklist-item input[type="checkbox"] {
+            border-color: #999 !important;
+        }
+
+        .pdf-mode .footer-note {
+            background: #f5f5f5 !important;
+            border: 2px solid #e0e0e0 !important;
+            backdrop-filter: none !important;
+        }
+
+        .pdf-mode .footer-note h3 {
+            color: #333 !important;
+        }
+
+        .pdf-mode .footer-note p {
+            color: #666 !important;
+        }
     </style>
 </head>
 <body>
@@ -540,10 +631,41 @@
 
         totalCount.textContent = checkboxes.length;
 
+        // 載入暫存的勾選狀態
+        function loadCheckboxStates() {
+            const savedStates = JSON.parse(localStorage.getItem('campingChecklist') || '{}');
+            checkboxes.forEach(checkbox => {
+                const id = checkbox.id;
+                if (savedStates[id]) {
+                    checkbox.checked = true;
+                    const item = checkbox.closest('.checklist-item');
+                    item.classList.add('checked');
+                }
+            });
+            updateProgress();
+            // 更新所有分類進度
+            document.querySelectorAll('.category-progress').forEach(progress => {
+                const category = progress.getAttribute('data-category');
+                updateCategoryProgress(category);
+            });
+        }
+
+        // 儲存勾選狀態到 localStorage
+        function saveCheckboxStates() {
+            const states = {};
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    states[checkbox.id] = true;
+                }
+            });
+            localStorage.setItem('campingChecklist', JSON.stringify(states));
+        }
+
         function toggleCheck(item) {
             const checkbox = item.querySelector('input[type="checkbox"]');
             checkbox.checked = !checkbox.checked;
             updateItemState(item, checkbox);
+            saveCheckboxStates();
         }
 
         function updateItemState(item, checkbox) {
@@ -585,6 +707,7 @@
                 e.stopPropagation();
                 const item = this.closest('.checklist-item');
                 updateItemState(item, this);
+                saveCheckboxStates();
             });
         });
 
@@ -601,24 +724,37 @@
                     const category = progress.getAttribute('data-category');
                     updateCategoryProgress(category);
                 });
+                
+                // 清除 localStorage
+                localStorage.removeItem('campingChecklist');
             }
         }
 
         function exportPDF() {
-          document.body.classList.add('pdf-mode');
-          const element = document.querySelector('.container');
-          const opt = {
-            margin: 5,
-            filename: '露營裝備檢查表.pdf',
-            image: { type: 'jpeg', quality: 1 },
-            html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-          };
-          html2pdf().set(opt).from(element).save().then(() => {
-            document.body.classList.remove('pdf-mode');
-          });
+            // 套用 PDF 模式樣式
+            document.documentElement.classList.add('pdf-mode');
+            
+            const element = document.querySelector('.container');
+            const opt = {
+                margin: 10,
+                filename: '露營裝備檢查表.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2,
+                    useCORS: true,
+                    logging: false
+                },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            html2pdf().set(opt).from(element).save().then(() => {
+                // 匯出完成後移除 PDF 模式樣式
+                document.documentElement.classList.remove('pdf-mode');
+            });
         }
 
+        // 頁面載入時讀取暫存資料
+        loadCheckboxStates();
         updateProgress();
     </script>
 </body>
