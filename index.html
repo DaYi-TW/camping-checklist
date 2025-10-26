@@ -605,15 +605,18 @@
         }
 
         function exportPDF() {
-            const element = document.querySelector('.container');
-            const opt = {
-                margin: 10,
-                filename: '露營裝備檢查表.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().set(opt).from(element).save();
+          document.body.classList.add('pdf-mode');
+          const element = document.querySelector('.container');
+          const opt = {
+            margin: 5,
+            filename: '露營裝備檢查表.pdf',
+            image: { type: 'jpeg', quality: 1 },
+            html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+          };
+          html2pdf().set(opt).from(element).save().then(() => {
+            document.body.classList.remove('pdf-mode');
+          });
         }
 
         updateProgress();
