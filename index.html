@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏕️ 露營裝備檢查表</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif;
+            background: linear-gradient(to bottom, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 193, 7, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(76, 175, 80, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .header h1 {
+            font-size: 3.5em;
+            color: #fff;
+            margin-bottom: 15px;
+            text-shadow: 0 0 20px rgba(255, 193, 7, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #ffc107;
+            opacity: 0.9;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px 40px;
+            text-align: center;
+            min-width: 150px;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #ffc107;
+            display: block;
+        }
+
+        .stat-label {
+            color: #fff;
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .progress-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            padding: 8px;
+            margin: 30px auto;
+            max-width: 600px;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #4CAF50, #8BC34A, #ffc107);
+            height: 40px;
+            border-radius: 50px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1em;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .category {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeInUp 0.6s ease backwards;
+        }
+
+        .category:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 193, 7, 0.5);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .category-title {
+            font-size: 1.6em;
+            color: #ffc107;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 193, 7, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-shadow: 0 0 10px rgba(255, 193, 7, 0.3);
+        }
+
+        .category-progress {
+            font-size: 0.7em;
+            color: #4CAF50;
+            margin-left: auto;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .checklist-item:hover {
+            background: rgba(255, 193, 7, 0.15);
+            border-color: rgba(255, 193, 7, 0.3);
+            transform: translateX(5px);
+        }
+
+        .checklist-item.checked {
+            background: rgba(76, 175, 80, 0.2);
+            border-color: rgba(76, 175, 80, 0.4);
+        }
+
+        .checklist-item.checked label {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .checklist-item input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            margin-right: 15px;
+            cursor: pointer;
+            appearance: none;
+            border: 2px solid rgba(255, 193, 7, 0.5);
+            border-radius: 6px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .checklist-item input[type="checkbox"]:checked {
+            background: linear-gradient(135deg, #4CAF50, #8BC34A);
+            border-color: #4CAF50;
+        }
+
+        .checklist-item input[type="checkbox"]:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .checklist-item label {
+            cursor: pointer;
+            flex: 1;
+            font-size: 1.05em;
+            color: #fff;
+            user-select: none;
+        }
+
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            animation: fadeInUp 1s ease;
+        }
+
+        .footer-note {
+            background: rgba(255, 193, 7, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-note h3 {
+            color: #ffc107;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+
+        .footer-note p {
+            color: #fff;
+            font-size: 1.1em;
+            line-height: 1.8;
+            opacity: 0.9;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .grid > .category:nth-child(1) { animation-delay: 0.1s; }
+        .grid > .category:nth-child(2) { animation-delay: 0.2s; }
+        .grid > .category:nth-child(3) { animation-delay: 0.3s; }
+        .grid > .category:nth-child(4) { animation-delay: 0.4s; }
+        .grid > .category:nth-child(5) { animation-delay: 0.5s; }
+        .grid > .category:nth-child(6) { animation-delay: 0.6s; }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.2em;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                gap: 15px;
+            }
+
+            .stat-card {
+                padding: 15px 25px;
+                min-width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏕️ 露營裝備檢查表</h1>
+            <p>完整的露營裝備清單，讓你每次出發都不再遺漏</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <span class="stat-number" id="checkedCount">0</span>
+                <span class="stat-label">已完成</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="totalCount">0</span>
+                <span class="stat-label">總項目</span>
+            </div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%">0%</div>
+        </div>
+
+        <div class="grid">
+            <div class="category">
+                <h2 class="category-title">🏠 帳篷 <span class="category-progress" data-category="tent">0/11</span></h2>
+                <div class="checklist-item"><input type="checkbox" data-category="tent"><label>客廳帳</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="tent"><label>睡帳</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="tent"><label>天幕</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="tent"><label>防潮地布</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="tent"><label>裝備箱</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="tent"><label>營釘繩</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="tent"><label>營柱</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="tent"><label>營燈</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="tent"><label>營椅</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="tent"><label>修補用品</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="tent"><label>營釘槌</label></div>
+            </div>
+
+            <div class="category">
+                <h2 class="category-title">🛏 寢具 <span class="category-progress" data-category="bedding">0/10</span></h2>
+                <div class="checklist-item"><input type="checkbox" data-category="bedding"><label>睡袋</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="bedding"><label>內袋</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="bedding"><label>暖墊</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="bedding"><label>枕頭</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="bedding"><label>床包</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="bedding"><label>電熱毯</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="bedding"><label>打氣機</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="bedding"><label>前庭墊</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="bedding"><label>充氣床／墊</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="bedding"><label>戶外防潮墊</label></div>
+            </div>
+
+            <div class="category">
+                <h2 class="category-title">🍽 休息區 <span class="category-progress" data-category="rest">0/9</span></h2>
+                <div class="checklist-item"><input type="checkbox" data-category="rest"><label>休閒桌</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="rest"><label>餐桌</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="rest"><label>電扇</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="rest"><label>RV桶</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="rest"><label>行軍床</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="rest"><label>吊床</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="rest"><label>餐椅</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="rest"><label>矮凳</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="rest"><label>椅（大人／兒童）</label></div>
+            </div>
+
+            <div class="category">
+                <h2 class="category-title">🍳 廚房用具 <span class="category-progress" data-category="kitchen">0/20</span></h2>
+                <div class="checklist-item"><input type="checkbox" data-category="kitchen"><label>保溫桶</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="kitchen"><label>砧板</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="kitchen"><label>石斑鍋</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="kitchen"><label>水杯</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="kitchen"><label>廚房紙巾</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="kitchen"><label>鍋具</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="kitchen"><label>泡茶壺</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="kitchen"><label>餐具組</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="kitchen"><label>拉垃圾袋</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="kitchen"><label>洗碗精</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="kitchen"><label>餐廚用籃</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="kitchen"><label>烤網／夾</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="kitchen"><label>炊具台</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="kitchen"><label>行動廚房</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="kitchen"><label>砧板／刀具</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="kitchen"><label>瓦斯爐</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="kitchen"><label>湯勺</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="kitchen"><label>菜瓜布</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="kitchen"><label>碗筷湯匙</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="kitchen"><label>咖啡壺</label></div>
+            </div>
+
+            <div class="category">
+                <h2 class="category-title">🥦 食材 <span class="category-progress" data-category="food">0/11</span></h2>
+                <div class="checklist-item"><input type="checkbox" data-category="food"><label>主食（飯／麵）</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="food"><label>肉類</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="food"><label>青菜</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="food"><label>水果</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="food"><label>雞蛋</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="food"><label>零食</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="food"><label>調味品</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="food"><label>飲水</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="food"><label>醬料／開瓶器</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="food"><label>咖啡／酒</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="food"><label>牛奶／果汁／飲料</label></div>
+            </div>
+
+            <div class="category">
+                <h2 class="category-title">👕 衣物 <span class="category-progress" data-category="clothes">0/12</span></h2>
+                <div class="checklist-item"><input type="checkbox" data-category="clothes"><label>內衣褲</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="clothes"><label>襪子</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="clothes"><label>帽子</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="clothes"><label>運動鞋</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="clothes"><label>上衣</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="clothes"><label>長上衣</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="clothes"><label>長褲</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="clothes"><label>外套</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="clothes"><label>手套</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="clothes"><label>團服</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="clothes"><label>泳衣</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="clothes"><label>拖鞋</label></div>
+            </div>
+
+            <div class="category">
+                <h2 class="category-title">🧴 醫洗 <span class="category-progress" data-category="hygiene">0/9</span></h2>
+                <div class="checklist-item"><input type="checkbox" data-category="hygiene"><label>衛生紙</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="hygiene"><label>藥袋用品</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="hygiene"><label>眼鏡／隱形眼鏡</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="hygiene"><label>沐浴乳</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="hygiene"><label>毛巾浴巾</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="hygiene"><label>牙膏牙刷</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="hygiene"><label>護膚保養</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="hygiene"><label>洗髮精</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="hygiene"><label>吹風機</label></div>
+            </div>
+
+            <div class="category">
+                <h2 class="category-title">💡 照明 <span class="category-progress" data-category="light">0/9</span></h2>
+                <div class="checklist-item"><input type="checkbox" data-category="light"><label>營繩燈</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="light"><label>手電筒</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="light"><label>頭燈</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="light"><label>音響燈</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="light"><label>LED燈</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="light"><label>營條</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="light"><label>手電燈</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="light"><label>夜衝燈</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="light"><label>插座</label></div>
+            </div>
+
+            <div class="category">
+                <h2 class="category-title">👶 嬰幼 <span class="category-progress" data-category="baby">0/7</span></h2>
+                <div class="checklist-item"><input type="checkbox" data-category="baby"><label>奶粉</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="baby"><label>奶瓶</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="baby"><label>奶嘴</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="baby"><label>尿布</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="baby"><label>濕紙巾</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="baby"><label>保溫瓶</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="baby"><label>換洗衣物</label></div>
+            </div>
+
+            <div class="category">
+                <h2 class="category-title">🧰 護理 <span class="category-progress" data-category="care">0/6</span></h2>
+                <div class="checklist-item"><input type="checkbox" data-category="care"><label>OK繃</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="care"><label>藥膏包</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="care"><label>髮梳</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="care"><label>指甲剪</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="care"><label>牙線棒</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="care"><label>防曬乳</label></div>
+            </div>
+
+            <div class="category">
+                <h2 class="category-title">🐶 寵物 <span class="category-progress" data-category="pet">0/5</span></h2>
+                <div class="checklist-item"><input type="checkbox" data-category="pet"><label>飼料碗／水碗</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="pet"><label>寵物床</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="pet"><label>飼料</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="pet"><label>牽繩</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="pet"><label>玩具</label></div>
+            </div>
+
+            <div class="category">
+                <h2 class="category-title">🔧 其他 <span class="category-progress" data-category="other">0/7</span></h2>
+                <div class="checklist-item"><input type="checkbox" data-category="other"><label>手機</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="other"><label>雨具</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="other"><label>攝影機／相機</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="other"><label>充電器</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="other"><label>墨鏡</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="other"><label>望遠鏡</label></div>
+                <div class="checklist-item"><input type="checkbox" data-category="other"><label>防蚊液</label></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-note">
+                <h3>🌄 溫馨提醒</h3>
+                <p>傘、繩、椅、燈、鍋等延伸用品或個人特別需求</p>
+                <p>可依季節、營地環境自由增減項目</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        const progressBar = document.getElementById('progressBar');
+        const checkedCount = document.getElementById('checkedCount');
+        const totalCount = document.getElementById('totalCount');
+
+        totalCount.textContent = checkboxes.length;
+
+        function updateProgress() {
+            const total = checkboxes.length;
+            const checked = document.querySelectorAll('input[type="checkbox"]:checked').length;
+            const percentage = Math.round((checked / total) * 100);
+            
+            progressBar.style.width = percentage + '%';
+            progressBar.textContent = percentage + '%';
+            checkedCount.textContent = checked;
+        }
+
+        function updateCategoryProgress(category) {
+            const categoryCheckboxes = document.querySelectorAll(`input[data-category="${category}"]`);
+            const categoryChecked = document.querySelectorAll(`input[data-category="${category}"]:checked`).length;
+            const categoryTotal = categoryCheckboxes.length;
+            const progressElement = document.querySelector(`.category-progress[data-category="${category}"]`);
+            
+            if (progressElement) {
+                progressElement.textContent = `${categoryChecked}/${categoryTotal}`;
+            }
+        }
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const item = this.parentElement;
+                const category = this.getAttribute('data-category');
+                
+                if (this.checked) {
+                    item.classList.add('checked');
+                } else {
+                    item.classList.remove('checked');
+                }
+                
+                updateProgress();
+                updateCategoryProgress(category);
+            });
+        });
+
+        document.querySelectorAll('.checklist-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (e.target.tagName
